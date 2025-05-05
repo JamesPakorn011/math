@@ -1,0 +1,709 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบทดสอบวิชาคณิตศาสตร์ เรื่อง เซต</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .option-hover:hover {
+            background-color: #e0f2fe;
+        }
+        .correct-answer {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+        }
+        .wrong-answer {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+        }
+        .timer-warning {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { color: #ef4444; }
+            50% { color: #b91c1c; }
+            100% { color: #ef4444; }
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-blue-600 text-white py-4 shadow-md">
+            <div class="container mx-auto px-4">
+                <h1 class="text-2xl md:text-3xl font-bold text-center">วิชาคณิตศาสตร์ เรื่อง เซต</h1>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8 flex-grow">
+            <!-- Quiz Container -->
+            <div class="bg-white rounded-lg shadow-lg p-6 max-w-3xl mx-auto">
+                <!-- Registration Form -->
+                <div id="registration-form" class="py-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-6 text-center">กรุณากรอกข้อมูลก่อนเริ่มทำแบบทดสอบ</h2>
+                    <form id="student-form" class="space-y-4">
+                        <div>
+                            <label for="first-name" class="block text-sm font-medium text-gray-700 mb-1">ชื่อ</label>
+                            <input type="text" id="first-name" name="first-name" required 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="last-name" class="block text-sm font-medium text-gray-700 mb-1">นามสกุล</label>
+                            <input type="text" id="last-name" name="last-name" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="pt-4">
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-300">
+                                เริ่มทำแบบทดสอบ
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Quiz Info -->
+                <div id="quiz-info" class="mb-6 text-center hidden">
+                    <h2 class="text-xl font-semibold text-gray-800">แบบทดสอบสำหรับนักเรียนมัธยมศึกษาปีที่ 4</h2>
+                    <p class="text-gray-600 mt-2">ทดสอบความรู้เรื่องเซต จำนวน 20 ข้อ</p>
+                    <p class="text-gray-600 mt-1">ผู้ทำแบบทดสอบ: <span id="student-name" class="font-medium"></span></p>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2 hidden" id="progress-container">
+                    <div class="bg-blue-600 h-2.5 rounded-full" id="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-sm text-gray-600 mb-6 hidden" id="progress-text">
+                    <span id="questions-done">0/20 ข้อ</span>
+                    <span id="questions-remaining">เหลืออีก 20 ข้อ</span>
+                </div>
+
+                <!-- Quiz Questions -->
+                <div id="quiz-container" class="hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm font-medium text-gray-600" id="question-number">ข้อที่ 1/20</span>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="text-sm font-medium" id="timer">เวลา: 05:00</span>
+                        </div>
+                    </div>
+                    
+                    <div id="question-container" class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-800 mb-4" id="question-text"></h3>
+                        <div id="options-container" class="space-y-3"></div>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <button id="next-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                            ข้อถัดไป
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Screen -->
+                <div id="results-screen" class="hidden text-center py-8">
+                    <h3 class="text-xl font-medium text-gray-800 mb-4">ผลการทดสอบ</h3>
+                    <p class="text-gray-600 mb-2" id="student-result-name"></p>
+                    
+                    <div class="text-5xl font-bold text-blue-600 mb-2" id="score-display">0/20</div>
+                    <div class="text-2xl font-semibold text-blue-600 mb-4" id="score-percentage">0%</div>
+                    <p class="text-gray-600 mb-6" id="score-message"></p>
+                    
+                    <div class="mb-8">
+                        <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+                            <div class="bg-blue-600 h-4 rounded-full" id="score-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <button id="review-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-300">
+                            ดูเฉลยคำตอบ
+                        </button>
+                        <button id="restart-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-6 rounded-lg transition duration-300">
+                            เริ่มทำใหม่
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Review Screen -->
+                <div id="review-screen" class="hidden py-4">
+                    <h3 class="text-xl font-medium text-gray-800 mb-4 text-center">เฉลยคำตอบ</h3>
+                    <div id="review-container" class="space-y-8"></div>
+                    
+                    <div class="mt-8 text-center">
+                        <button id="back-to-results-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-300">
+                            กลับไปหน้าผลการทดสอบ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-4 mt-8">
+            <div class="container mx-auto px-4 text-center">
+                <p>พัฒนาโดย ฟ้าใส เด็กเรียน</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Quiz data
+            const quizData = [
+                {
+                    question: "ถ้า A = {1, 2, 3, 4} และ B = {3, 4, 5, 6} แล้ว A ∩ B คือข้อใด",
+                    options: [
+                        "{1, 2}",
+                        "{3, 4}",
+                        "{5, 6}",
+                        "{1, 2, 3, 4, 5, 6}"
+                    ],
+                    correctAnswer: 1,
+                    explanation: "A ∩ B คือสมาชิกที่อยู่ทั้งในเซต A และเซต B ซึ่งก็คือ {3, 4}"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3, 4} และ B = {3, 4, 5, 6} แล้ว A ∪ B คือข้อใด",
+                    options: [
+                        "{1, 2}",
+                        "{3, 4}",
+                        "{5, 6}",
+                        "{1, 2, 3, 4, 5, 6}"
+                    ],
+                    correctAnswer: 3,
+                    explanation: "A ∪ B คือสมาชิกที่อยู่ในเซต A หรือเซต B หรือทั้งสองเซต ซึ่งก็คือ {1, 2, 3, 4, 5, 6}"
+                },
+                {
+                    question: "ถ้า U = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10} และ A = {2, 4, 6, 8, 10} แล้ว A' (คอมพลีเมนต์ของ A) คือข้อใด",
+                    options: [
+                        "{1, 3, 5, 7, 9}",
+                        "{2, 4, 6, 8, 10}",
+                        "{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}",
+                        "{ }"
+                    ],
+                    correctAnswer: 0,
+                    explanation: "A' คือสมาชิกทั้งหมดในเซตจักรวาล U ที่ไม่ได้อยู่ในเซต A ซึ่งก็คือ {1, 3, 5, 7, 9}"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3} และ B = {1, 2, 3, 4, 5} แล้วข้อใดถูกต้อง",
+                    options: [
+                        "A ⊂ B (A เป็นเซตย่อยแท้ของ B)",
+                        "B ⊂ A (B เป็นเซตย่อยแท้ของ A)",
+                        "A = B (A เท่ากับ B)",
+                        "A และ B ไม่มีความสัมพันธ์กัน"
+                    ],
+                    correctAnswer: 0,
+                    explanation: "A ⊂ B เพราะสมาชิกทุกตัวของ A อยู่ใน B และ A ≠ B"
+                },
+                {
+                    question: "ถ้า A = {x | x เป็นจำนวนเต็มบวกที่น้อยกว่า 5} แล้ว A คือข้อใด",
+                    options: [
+                        "{0, 1, 2, 3, 4}",
+                        "{1, 2, 3, 4}",
+                        "{1, 2, 3, 4, 5}",
+                        "{0, 1, 2, 3, 4, 5}"
+                    ],
+                    correctAnswer: 1,
+                    explanation: "จำนวนเต็มบวกที่น้อยกว่า 5 คือ 1, 2, 3, 4 (0 ไม่ใช่จำนวนเต็มบวก และ 5 ไม่น้อยกว่า 5)"
+                },
+                {
+                    question: "ถ้า A = {1, 3, 5, 7} และ B = {1, 2, 3, 4} แล้ว A - B คือข้อใด",
+                    options: [
+                        "{5, 7}",
+                        "{2, 4}",
+                        "{1, 3}",
+                        "{1, 2, 3, 4, 5, 7}"
+                    ],
+                    correctAnswer: 0,
+                    explanation: "A - B คือสมาชิกที่อยู่ในเซต A แต่ไม่อยู่ในเซต B ซึ่งก็คือ {5, 7}"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3} และ B = {4, 5, 6} แล้วข้อใดถูกต้อง",
+                    options: [
+                        "A ∩ B = {1, 2, 3, 4, 5, 6}",
+                        "A ∩ B = { }",
+                        "A ∪ B = { }",
+                        "A = B"
+                    ],
+                    correctAnswer: 1,
+                    explanation: "A ∩ B คือสมาชิกที่อยู่ทั้งในเซต A และเซต B ซึ่งไม่มีสมาชิกใดที่อยู่ทั้งสองเซต จึงได้เซตว่าง { }"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3, 4, 5} และ B = {4, 5, 6, 7, 8} แล้ว n(A ∪ B) คือข้อใด",
+                    options: [
+                        "5",
+                        "8",
+                        "10",
+                        "3"
+                    ],
+                    correctAnswer: 1,
+                    explanation: "A ∪ B = {1, 2, 3, 4, 5, 6, 7, 8} ซึ่งมีจำนวนสมาชิก n(A ∪ B) = 8"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3, 4, 5} และ B = {4, 5, 6, 7, 8} แล้ว n(A ∩ B) คือข้อใด",
+                    options: [
+                        "0",
+                        "2",
+                        "3",
+                        "5"
+                    ],
+                    correctAnswer: 1,
+                    explanation: "A ∩ B = {4, 5} ซึ่งมีจำนวนสมาชิก n(A ∩ B) = 2"
+                },
+                {
+                    question: "ถ้า n(A) = 5, n(B) = 7 และ n(A ∩ B) = 3 แล้ว n(A ∪ B) คือข้อใด",
+                    options: [
+                        "9",
+                        "12",
+                        "15",
+                        "5"
+                    ],
+                    correctAnswer: 0,
+                    explanation: "จากสูตร n(A ∪ B) = n(A) + n(B) - n(A ∩ B) = 5 + 7 - 3 = 9"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3, 4} และ B = {3, 4, 5, 6} แล้ว (A ∪ B) - (A ∩ B) คือข้อใด",
+                    options: [
+                        "{1, 2, 5, 6}",
+                        "{3, 4}",
+                        "{1, 2, 3, 4, 5, 6}",
+                        "{}"
+                    ],
+                    correctAnswer: 0,
+                    explanation: "A ∪ B = {1, 2, 3, 4, 5, 6} และ A ∩ B = {3, 4} ดังนั้น (A ∪ B) - (A ∩ B) = {1, 2, 5, 6}"
+                },
+                {
+                    question: "ถ้า A ⊂ B แล้วข้อใดถูกต้องเสมอ",
+                    options: [
+                        "A ∩ B = A",
+                        "A ∪ B = B",
+                        "A - B = ∅",
+                        "ข้อ ก. และ ข. ถูกต้อง"
+                    ],
+                    correctAnswer: 3,
+                    explanation: "เมื่อ A ⊂ B จะได้ว่า A ∩ B = A และ A ∪ B = B เสมอ"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3, 4, 5} และ B = {x | x เป็นจำนวนเต็มบวกคู่ที่น้อยกว่า 10} แล้ว A ∩ B คือข้อใด",
+                    options: [
+                        "{2, 4}",
+                        "{2, 4, 6, 8}",
+                        "{1, 3, 5}",
+                        "{1, 2, 3, 4, 5}"
+                    ],
+                    correctAnswer: 0,
+                    explanation: "B = {2, 4, 6, 8} ดังนั้น A ∩ B = {2, 4}"
+                },
+                {
+                    question: "ถ้า U = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, A = {1, 3, 5, 7, 9} และ B = {2, 4, 6, 8, 10} แล้วข้อใดถูกต้อง",
+                    options: [
+                        "A ∩ B = U",
+                        "A ∪ B = U",
+                        "A' = B",
+                        "ข้อ ข. และ ค. ถูกต้อง"
+                    ],
+                    correctAnswer: 3,
+                    explanation: "A ∪ B = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10} = U และ A' = {2, 4, 6, 8, 10} = B"
+                },
+                {
+                    question: "ถ้า A และ B เป็นเซตที่ A ∩ B = ∅ แล้วข้อใดถูกต้อง",
+                    options: [
+                        "A ⊂ B",
+                        "B ⊂ A",
+                        "A และ B เป็นเซตที่กระจัดกระจาย (disjoint sets)",
+                        "A = B"
+                    ],
+                    correctAnswer: 2,
+                    explanation: "เมื่อ A ∩ B = ∅ หมายความว่า A และ B ไม่มีสมาชิกร่วมกัน ซึ่งเรียกว่าเป็นเซตที่กระจัดกระจาย (disjoint sets)"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3}, B = {2, 3, 4} และ C = {3, 4, 5} แล้ว A ∩ B ∩ C คือข้อใด",
+                    options: [
+                        "{1, 2, 3, 4, 5}",
+                        "{3}",
+                        "{2, 3}",
+                        "{}"
+                    ],
+                    correctAnswer: 1,
+                    explanation: "A ∩ B ∩ C คือสมาชิกที่อยู่ในทั้งสามเซต ซึ่งก็คือ {3}"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3}, B = {2, 3, 4} และ C = {3, 4, 5} แล้ว A ∪ B ∪ C คือข้อใด",
+                    options: [
+                        "{1, 2, 3, 4, 5}",
+                        "{3}",
+                        "{2, 3, 4}",
+                        "{1, 3, 5}"
+                    ],
+                    correctAnswer: 0,
+                    explanation: "A ∪ B ∪ C คือสมาชิกที่อยู่ในเซตใดเซตหนึ่งหรือหลายเซต ซึ่งก็คือ {1, 2, 3, 4, 5}"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3, 4} และ P(A) คือเพาเวอร์เซตของ A แล้ว n(P(A)) คือข้อใด",
+                    options: [
+                        "4",
+                        "8",
+                        "16",
+                        "32"
+                    ],
+                    correctAnswer: 2,
+                    explanation: "เพาเวอร์เซตของ A คือเซตของเซตย่อยทั้งหมดของ A ซึ่งมีจำนวน 2^n(A) = 2^4 = 16 เซต"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3} แล้วข้อใดไม่ใช่สมาชิกของ P(A)",
+                    options: [
+                        "{1, 2}",
+                        "{1, 2, 3, 4}",
+                        "{2, 3}",
+                        "{}"
+                    ],
+                    correctAnswer: 1,
+                    explanation: "P(A) คือเซตของเซตย่อยทั้งหมดของ A ซึ่ง {1, 2, 3, 4} ไม่ใช่เซตย่อยของ A เพราะมีสมาชิก 4 ที่ไม่อยู่ใน A"
+                },
+                {
+                    question: "ถ้า A = {1, 2, 3, 4, 5} และ B = {4, 5, 6, 7, 8} แล้ว (A - B) ∪ (B - A) คือข้อใด",
+                    options: [
+                        "{1, 2, 3, 6, 7, 8}",
+                        "{4, 5}",
+                        "{1, 2, 3, 4, 5, 6, 7, 8}",
+                        "{}"
+                    ],
+                    correctAnswer: 0,
+                    explanation: "A - B = {1, 2, 3} และ B - A = {6, 7, 8} ดังนั้น (A - B) ∪ (B - A) = {1, 2, 3, 6, 7, 8}"
+                }
+            ];
+
+            // Elements
+            const registrationForm = document.getElementById('registration-form');
+            const studentForm = document.getElementById('student-form');
+            const quizInfo = document.getElementById('quiz-info');
+            const quizContainer = document.getElementById('quiz-container');
+            const resultsScreen = document.getElementById('results-screen');
+            const reviewScreen = document.getElementById('review-screen');
+            const progressContainer = document.getElementById('progress-container');
+            const progressText = document.getElementById('progress-text');
+            const questionNumber = document.getElementById('question-number');
+            const questionText = document.getElementById('question-text');
+            const optionsContainer = document.getElementById('options-container');
+            const progressBar = document.getElementById('progress-bar');
+            const nextBtn = document.getElementById('next-btn');
+            const timerDisplay = document.getElementById('timer');
+            const scoreDisplay = document.getElementById('score-display');
+            const scoreMessage = document.getElementById('score-message');
+            const scoreBar = document.getElementById('score-bar');
+            const scorePercentage = document.getElementById('score-percentage');
+            const reviewContainer = document.getElementById('review-container');
+            const questionsDone = document.getElementById('questions-done');
+            const questionsRemaining = document.getElementById('questions-remaining');
+
+            // Variables
+            let currentQuestion = 0;
+            let score = 0;
+            let userAnswers = Array(quizData.length).fill(null);
+            let timerInterval;
+            let timeLeft = 300; // 5 minutes in seconds
+            let studentName = '';
+            let studentLastName = '';
+
+            // Registration form submission
+            studentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                studentName = document.getElementById('first-name').value.trim();
+                studentLastName = document.getElementById('last-name').value.trim();
+                
+                if (studentName && studentLastName) {
+                    document.getElementById('student-name').textContent = `${studentName} ${studentLastName}`;
+                    document.getElementById('student-result-name').textContent = `ชื่อ-นามสกุล: ${studentName} ${studentLastName}`;
+                    
+                    registrationForm.classList.add('hidden');
+                    quizInfo.classList.remove('hidden');
+                    progressContainer.classList.remove('hidden');
+                    progressText.classList.remove('hidden');
+                    quizContainer.classList.remove('hidden');
+                    
+                    startQuiz();
+                }
+            });
+            
+            // Navigation buttons event listeners
+            nextBtn.addEventListener('click', showNextQuestion);
+            
+            // Result screen buttons event listeners
+            document.getElementById('review-btn').addEventListener('click', showReview);
+            document.getElementById('restart-btn').addEventListener('click', restartQuiz);
+            document.getElementById('back-to-results-btn').addEventListener('click', showResults);
+
+            // Start the quiz
+            function startQuiz() {
+                showQuestion(0);
+                startTimer();
+                updateProgressInfo();
+            }
+
+            // Show question
+            function showQuestion(index) {
+                currentQuestion = index;
+                
+                // Reset timer for new question
+                clearInterval(timerInterval);
+                timeLeft = 300; // 5 minutes
+                updateTimerDisplay();
+                startTimer();
+                
+                // Update question number
+                questionNumber.textContent = `ข้อที่ ${index + 1}/${quizData.length}`;
+                
+                // Update progress bar
+                progressBar.style.width = `${((index + 1) / quizData.length) * 100}%`;
+                
+                // Update question text
+                questionText.textContent = quizData[index].question;
+                
+                // Clear options
+                optionsContainer.innerHTML = '';
+                
+                // Add options
+                quizData[index].options.forEach((option, i) => {
+                    const optionElement = document.createElement('div');
+                    optionElement.className = 'option-hover border rounded-lg p-3 cursor-pointer transition duration-300';
+                    
+                    // If user has already answered this question, highlight their choice
+                    if (userAnswers[index] === i) {
+                        optionElement.classList.add('border-blue-500', 'bg-blue-50');
+                    } else {
+                        optionElement.classList.add('border-gray-200');
+                    }
+                    
+                    optionElement.innerHTML = `
+                        <div class="flex items-center">
+                            <div class="w-6 h-6 flex items-center justify-center rounded-full border ${userAnswers[index] === i ? 'border-blue-500 bg-blue-500 text-white' : 'border-gray-300'} mr-3">
+                                ${String.fromCharCode(65 + i)}
+                            </div>
+                            <span>${option}</span>
+                        </div>
+                    `;
+                    
+                    optionElement.addEventListener('click', () => selectOption(i));
+                    optionsContainer.appendChild(optionElement);
+                });
+                
+                // Update next button state
+                nextBtn.disabled = userAnswers[currentQuestion] === null;
+                
+                // If it's the last question, change button text
+                if (currentQuestion === quizData.length - 1) {
+                    nextBtn.textContent = 'ส่งคำตอบ';
+                } else {
+                    nextBtn.textContent = 'ข้อถัดไป';
+                }
+            }
+
+            // Select option
+            function selectOption(optionIndex) {
+                userAnswers[currentQuestion] = optionIndex;
+                showQuestion(currentQuestion);
+                nextBtn.disabled = false;
+            }
+
+            // Show next question
+            function showNextQuestion() {
+                if (userAnswers[currentQuestion] === null) {
+                    // Don't allow proceeding if no answer selected
+                    return;
+                }
+                
+                if (currentQuestion < quizData.length - 1) {
+                    showQuestion(currentQuestion + 1);
+                    updateProgressInfo();
+                } else {
+                    submitQuiz();
+                }
+            }
+
+            // Update progress information
+            function updateProgressInfo() {
+                const done = userAnswers.filter(answer => answer !== null).length;
+                questionsDone.textContent = `${done}/${quizData.length} ข้อ`;
+                questionsRemaining.textContent = `เหลืออีก ${quizData.length - done} ข้อ`;
+            }
+
+            // Start timer
+            function startTimer() {
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    
+                    if (timeLeft <= 60) {
+                        timerDisplay.classList.add('timer-warning');
+                    } else {
+                        timerDisplay.classList.remove('timer-warning');
+                    }
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        // Force move to next question if time runs out
+                        if (userAnswers[currentQuestion] === null) {
+                            // If no answer selected, select a random one
+                            const randomAnswer = Math.floor(Math.random() * 4);
+                            selectOption(randomAnswer);
+                        }
+                        
+                        if (currentQuestion < quizData.length - 1) {
+                            showNextQuestion();
+                        } else {
+                            submitQuiz();
+                        }
+                    }
+                }, 1000);
+            }
+
+            // Update timer display
+            function updateTimerDisplay() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.textContent = `เวลา: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            // Submit quiz
+            function submitQuiz() {
+                clearInterval(timerInterval);
+                
+                // Calculate score
+                score = 0;
+                userAnswers.forEach((answer, index) => {
+                    if (answer === quizData[index].correctAnswer) {
+                        score++;
+                    }
+                });
+                
+                showResults();
+            }
+
+            // Show results
+            function showResults() {
+                quizContainer.classList.add('hidden');
+                reviewScreen.classList.add('hidden');
+                resultsScreen.classList.remove('hidden');
+                
+                // Update score display
+                scoreDisplay.textContent = `${score}/${quizData.length}`;
+                
+                // Update score percentage
+                const percentage = (score / quizData.length) * 100;
+                scorePercentage.textContent = `${percentage.toFixed(2)}%`;
+                
+                // Update score bar
+                scoreBar.style.width = `${percentage}%`;
+                
+                // Update score message
+                if (percentage >= 80) {
+                    scoreMessage.textContent = "ยอดเยี่ยม! คุณเข้าใจเรื่องเซตเป็นอย่างดี";
+                } else if (percentage >= 60) {
+                    scoreMessage.textContent = "ดีมาก! คุณมีความเข้าใจในเรื่องเซตค่อนข้างดี";
+                } else if (percentage >= 40) {
+                    scoreMessage.textContent = "พอใช้! คุณควรทบทวนเรื่องเซตเพิ่มเติม";
+                } else {
+                    scoreMessage.textContent = "ควรปรับปรุง! คุณควรศึกษาเรื่องเซตใหม่อีกครั้ง";
+                }
+            }
+
+            // Show review
+            function showReview() {
+                resultsScreen.classList.add('hidden');
+                reviewScreen.classList.remove('hidden');
+                
+                // Clear review container
+                reviewContainer.innerHTML = '';
+                
+                // Add review items
+                quizData.forEach((question, index) => {
+                    const reviewItem = document.createElement('div');
+                    reviewItem.className = 'border rounded-lg p-4 mb-6';
+                    
+                    // Question header
+                    const header = document.createElement('div');
+                    header.className = 'flex justify-between items-center mb-3';
+                    header.innerHTML = `
+                        <span class="font-medium">ข้อที่ ${index + 1}</span>
+                        <span class="${userAnswers[index] === question.correctAnswer ? 'text-green-600' : 'text-red-600'} font-medium">
+                            ${userAnswers[index] === question.correctAnswer ? 'ถูกต้อง' : 'ไม่ถูกต้อง'}
+                        </span>
+                    `;
+                    
+                    // Question text
+                    const questionElement = document.createElement('p');
+                    questionElement.className = 'text-gray-800 mb-3';
+                    questionElement.textContent = question.question;
+                    
+                    // Options
+                    const optionsElement = document.createElement('div');
+                    optionsElement.className = 'space-y-2 mb-3';
+                    
+                    question.options.forEach((option, i) => {
+                        const optionElement = document.createElement('div');
+                        
+                        // Style based on correct answer and user answer
+                        if (i === question.correctAnswer) {
+                            optionElement.className = 'correct-answer p-2 rounded-lg border';
+                        } else if (i === userAnswers[index] && i !== question.correctAnswer) {
+                            optionElement.className = 'wrong-answer p-2 rounded-lg border';
+                        } else {
+                            optionElement.className = 'p-2 rounded-lg border border-gray-200';
+                        }
+                        
+                        optionElement.innerHTML = `
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 flex items-center justify-center rounded-full border mr-3 ${i === question.correctAnswer ? 'border-green-500 bg-green-500 text-white' : i === userAnswers[index] ? 'border-red-500 bg-red-500 text-white' : 'border-gray-300'}">
+                                    ${String.fromCharCode(65 + i)}
+                                </div>
+                                <span>${option}</span>
+                            </div>
+                        `;
+                        
+                        optionsElement.appendChild(optionElement);
+                    });
+                    
+                    // Explanation
+                    const explanationElement = document.createElement('div');
+                    explanationElement.className = 'bg-blue-50 p-3 rounded-lg text-sm text-gray-700';
+                    explanationElement.innerHTML = `<strong>คำอธิบาย:</strong> ${question.explanation}`;
+                    
+                    // Append all elements
+                    reviewItem.appendChild(header);
+                    reviewItem.appendChild(questionElement);
+                    reviewItem.appendChild(optionsElement);
+                    reviewItem.appendChild(explanationElement);
+                    
+                    reviewContainer.appendChild(reviewItem);
+                });
+            }
+
+            // Restart quiz
+            function restartQuiz() {
+                currentQuestion = 0;
+                score = 0;
+                userAnswers = Array(quizData.length).fill(null);
+                
+                resultsScreen.classList.add('hidden');
+                registrationForm.classList.remove('hidden');
+                quizInfo.classList.add('hidden');
+                progressContainer.classList.add('hidden');
+                progressText.classList.add('hidden');
+                
+                // Reset form
+                document.getElementById('first-name').value = '';
+                document.getElementById('last-name').value = '';
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93ad8a4282d8d335',t:'MTc0NjQxOTgyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
